@@ -9,7 +9,7 @@ namespace ZXing.Net.Maui
 {
 	public partial class CameraBarcodeReaderViewHandler : ViewHandler<ICameraBarcodeReaderView, NativePlatformCameraPreviewView>
 	{
-		public static PropertyMapper<ICameraBarcodeReaderView, CameraBarcodeReaderViewHandler> CameraBarcodeReaderViewMapper = new()
+		public static readonly PropertyMapper<ICameraBarcodeReaderView, CameraBarcodeReaderViewHandler> CameraBarcodeReaderViewMapper = new()
 		{
 			[nameof(ICameraBarcodeReaderView.Options)] = MapOptions,
 			[nameof(ICameraBarcodeReaderView.IsDetecting)] = MapIsDetecting,
@@ -17,17 +17,17 @@ namespace ZXing.Net.Maui
 			[nameof(ICameraBarcodeReaderView.CameraLocation)] = (handler, virtualView) => handler.cameraManager.UpdateCameraLocation(virtualView.CameraLocation)
 		};
 
-		public static CommandMapper<ICameraBarcodeReaderView, CameraBarcodeReaderViewHandler> CameraBarcodeReaderCommandMapper = new()
+		public static readonly CommandMapper<ICameraBarcodeReaderView, CameraBarcodeReaderViewHandler> CameraBarcodeReaderCommandMapper = new()
 		{
 			[nameof(ICameraBarcodeReaderView.Focus)] = MapFocus,
 			[nameof(ICameraBarcodeReaderView.AutoFocus)] = MapAutoFocus,
 		};
 
-		public CameraBarcodeReaderViewHandler() : base(CameraBarcodeReaderViewMapper)
+		public CameraBarcodeReaderViewHandler() : base(CameraBarcodeReaderViewMapper, CameraBarcodeReaderCommandMapper)
 		{
 		}
 
-		public CameraBarcodeReaderViewHandler(PropertyMapper mapper = null) : base(mapper ?? CameraBarcodeReaderViewMapper)
+		public CameraBarcodeReaderViewHandler(PropertyMapper mapper = null) : base(mapper ?? CameraBarcodeReaderViewMapper, CameraBarcodeReaderCommandMapper)
 		{
 		}
 
@@ -82,7 +82,16 @@ namespace ZXing.Net.Maui
 			=> handler.BarcodeReader.Options = cameraBarcodeReaderView.Options;
 
 		public static void MapIsDetecting(CameraBarcodeReaderViewHandler handler, ICameraBarcodeReaderView cameraBarcodeReaderView)
-		{ }
+		{
+			if (cameraBarcodeReaderView.IsDetecting)
+			{
+				handler.cameraManager.Connect();
+			}
+			else
+			{
+				handler.cameraManager.Disconnect();
+			}
+		}
 
 		public void Focus(Point point)
 			=> cameraManager?.Focus(point);

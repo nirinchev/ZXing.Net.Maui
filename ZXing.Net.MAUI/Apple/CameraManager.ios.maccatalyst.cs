@@ -37,8 +37,8 @@ namespace ZXing.Net.Maui
 		{
 			captureSession = new AVCaptureSession
 			{
-				SessionPreset = AVCaptureSession.Preset640x480
-			};
+				SessionPreset = AVCaptureSession.Preset1280x720
+            };
 
 			videoPreviewLayer = new AVCaptureVideoPreviewLayer(captureSession);
 			videoPreviewLayer.VideoGravity = AVLayerVideoGravity.ResizeAspectFill;
@@ -116,7 +116,8 @@ namespace ZXing.Net.Maui
 						captureDevice = device;
 						break;
 					}
-					else if (CameraLocation == CameraLocation.Rear && device.Position == AVCaptureDevicePosition.Back)
+
+					if (CameraLocation == CameraLocation.Rear && device.Position == AVCaptureDevicePosition.Back)
 					{
 						captureDevice = device;
 						break;
@@ -146,7 +147,7 @@ namespace ZXing.Net.Maui
 					captureSession.StopRunning();
 
 				captureSession.RemoveOutput(videoDataOutput);
-				
+
 				// Cleanup old input
 				if (captureInput != null && captureSession.Inputs.Length > 0 && captureSession.Inputs.Contains(captureInput))
 				{
