@@ -126,7 +126,7 @@ namespace ZXing.Net.Maui
 				if (captureDevice == null)
 					captureDevice = AVCaptureDevice.GetDefaultDevice(AVMediaTypes.Video);
 
-				if (captureDevice is null)
+				if (captureDevice is null || AVCaptureDevice.GetAuthorizationStatus(AVAuthorizationMediaType.Video) != AVAuthorizationStatus.Authorized)
 					return;
 
 				captureInput = new AVCaptureDeviceInput(captureDevice, out var err);
