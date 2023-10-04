@@ -1,37 +1,16 @@
-﻿using System;
-using Android.Content;
-using Android.Graphics;
-using Android.Hardware.Camera2;
-using Android.Hardware.Camera2.Params;
-using Android.Media;
-using Android.Nfc;
-using Android.OS;
-using Android.Renderscripts;
-using Android.Runtime;
-using Android.Util;
-using Android.Views;
+﻿using Android.Graphics;
 using AndroidX.Camera.Core;
 using AndroidX.Camera.Lifecycle;
 using AndroidX.Camera.View;
 using AndroidX.Core.Content;
-using Java.Util;
 using Java.Util.Concurrent;
-using Microsoft.Maui;
-using Microsoft.Maui.Handlers;
-using Microsoft.Extensions.DependencyInjection;
-using static Android.Hardware.Camera;
-using static Android.Provider.Telephony;
-using static Java.Util.Concurrent.Flow;
 using AView = Android.Views.View;
-using Android.Hardware;
-using static Android.Graphics.Paint;
-using AndroidX.Camera.Camera2.InterOp;
 
 namespace ZXing.Net.Maui
 {
 	internal partial class CameraManager
 	{
-		AndroidX.Camera.Core.Preview cameraPreview;
+		Preview cameraPreview;
 		ImageAnalysis imageAnalyzer;
 		PreviewView previewView;
 		IExecutorService cameraExecutor;
@@ -42,7 +21,6 @@ namespace ZXing.Net.Maui
 		public NativePlatformCameraPreviewView CreateNativeView()
 		{
 			previewView = new PreviewView(Context.Context);
-			cameraExecutor = Executors.NewSingleThreadExecutor();
 
 			return previewView;
 		}
@@ -57,7 +35,7 @@ namespace ZXing.Net.Maui
 				cameraProvider = (ProcessCameraProvider)cameraProviderFuture.Get();
 
 				// Preview
-				cameraPreview = new AndroidX.Camera.Core.Preview.Builder().Build();
+				cameraPreview = new Preview.Builder().Build();
 				cameraPreview.SetSurfaceProvider(previewView.SurfaceProvider);
 
 				// Frame by frame analyze
@@ -65,6 +43,8 @@ namespace ZXing.Net.Maui
 					.SetDefaultResolution(new Android.Util.Size(640, 480))
 					.SetBackpressureStrategy(ImageAnalysis.StrategyKeepOnlyLatest)
 					.Build();
+
+				cameraExecutor = Executors.NewSingleThreadExecutor();
 
 				imageAnalyzer.SetAnalyzer(cameraExecutor, new FrameAnalyzer((buffer, size) =>
 					FrameReady?.Invoke(this, new CameraFrameBufferEventArgs(new Readers.PixelBufferHolder { Data = buffer, Size = size }))));
@@ -75,7 +55,18 @@ namespace ZXing.Net.Maui
 		}
 
 		public void Disconnect()
-		{ }
+		{
+			cameraProvider?.Shutdown();
+			cameraProvider?.Dispose();
+			cameraProvider = null;
+
+			cameraExecutor?.Shutdown();
+			cameraExecutor?.Dispose();
+			cameraExecutor = null;
+
+			cameraPreview?.Dispose();
+			cameraPreview = null;
+		}
 
 		public void UpdateCamera()
 		{
@@ -115,9 +106,15 @@ namespace ZXing.Net.Maui
 			camera?.CameraControl?.EnableTorch(on);
 		}
 
-		public void Focus(Point point)
+		public void Focus(Microsoft.Maui.Graphics.Point point)
 		{
+			var factory = new SurfaceOrientedMeteringPointFactory(1, 1);
+			var meteringPoint = factory.CreatePoint((float)point.X, (float)point.Y);
+			var action = new FocusMeteringAction.Builder(meteringPoint, FocusMeteringAction.FlagAf)
+				.DisableAutoCancel()
+				.Build();
 
+			camera.CameraControl.StartFocusAndMetering(action);
 		}
 
 		public void AutoFocus()
