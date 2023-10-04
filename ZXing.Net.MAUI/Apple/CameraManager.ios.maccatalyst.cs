@@ -10,6 +10,7 @@ using UIKit;
 using Microsoft.Maui;
 using MSize = Microsoft.Maui.Graphics.Size;
 using CoreAnimation;
+using CoreGraphics;
 
 namespace ZXing.Net.Maui
 {
@@ -200,8 +201,11 @@ namespace ZXing.Net.Maui
 			{
 				CaptureDevicePerformWithLockedConfiguration(() =>
 				{
-					//Focus at the point touched
-					captureDevice.FocusPointOfInterest = point;
+					// The focus point coordinates are between 0..1, so we need to first convert
+					// them to layer coordinates and then convert the layer coordinates to point of
+					// interest coordinates, since the device may be rotated.
+					var layerPoint = new CGPoint(point.X * this.videoPreviewLayer.Bounds.Width, point.Y * this.videoPreviewLayer.Bounds.Height);
+					captureDevice.FocusPointOfInterest = this.videoPreviewLayer.CaptureDevicePointOfInterestForPoint(layerPoint);
 					captureDevice.FocusMode = focusMode;
 				});
 			}
