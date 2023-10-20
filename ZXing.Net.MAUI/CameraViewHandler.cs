@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Handlers;
@@ -14,7 +12,7 @@ namespace ZXing.Net.Maui
 		public static PropertyMapper<ICameraView, CameraViewHandler> CameraViewMapper = new()
 		{
 			[nameof(ICameraView.IsTorchOn)] = (handler, virtualView) => handler.cameraManager.UpdateTorch(virtualView.IsTorchOn),
-			[nameof(ICameraView.CameraLocation)] = (handler, virtualView) => handler.cameraManager.UpdateCameraLocation(virtualView.CameraLocation)
+			[nameof(ICameraView.CameraLocation)] = (handler, virtualView) => handler.cameraManager.UpdateCameraLocation(virtualView.CameraLocation),
 		};
 
 		public static CommandMapper<ICameraView, CameraViewHandler> CameraCommandMapper = new()
@@ -22,7 +20,7 @@ namespace ZXing.Net.Maui
 			[nameof(ICameraView.Focus)] = MapFocus,
 			[nameof(ICameraView.AutoFocus)] = MapAutoFocus,
 		};
-		
+
 		CameraManager cameraManager;
 
 		public event EventHandler<CameraFrameBufferEventArgs> FrameReady;
@@ -73,6 +71,8 @@ namespace ZXing.Net.Maui
 
 		public void AutoFocus()
 			=> cameraManager?.AutoFocus();
+
+		public Task<bool> CanScan() => cameraManager?.CanScan() ?? Task.FromResult(false);
 
 		public static void MapFocus(CameraViewHandler handler, ICameraView cameraBarcodeReaderView, object? parameter)
 		{

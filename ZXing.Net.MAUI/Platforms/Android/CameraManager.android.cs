@@ -1,10 +1,9 @@
-﻿using Android.Graphics;
+﻿using System.Threading.Tasks;
 using AndroidX.Camera.Core;
 using AndroidX.Camera.Lifecycle;
 using AndroidX.Camera.View;
 using AndroidX.Core.Content;
 using Java.Util.Concurrent;
-using AView = Android.Views.View;
 
 namespace ZXing.Net.Maui
 {
@@ -77,13 +76,15 @@ namespace ZXing.Net.Maui
 
 				var cameraLocation = CameraLocation;
 
-				// Select back camera as a default, or front camera otherwise
-				if (cameraLocation == CameraLocation.Rear && cameraProvider.HasCamera(CameraSelector.DefaultBackCamera))
-					cameraSelector = CameraSelector.DefaultBackCamera;
-				else if (cameraLocation == CameraLocation.Front && cameraProvider.HasCamera(CameraSelector.DefaultFrontCamera))
-					cameraSelector = CameraSelector.DefaultFrontCamera;
-				else
-					cameraSelector = CameraSelector.DefaultBackCamera;
+				cameraSelector = cameraLocation switch
+				{
+					// Select back camera as a default, or front camera otherwise
+					CameraLocation.Rear when cameraProvider.HasCamera(CameraSelector.DefaultBackCamera) => CameraSelector.DefaultBackCamera,
+					CameraLocation.Front when cameraProvider.HasCamera(CameraSelector.DefaultFrontCamera) => CameraSelector.DefaultFrontCamera,
+					_ when cameraProvider.HasCamera(CameraSelector.DefaultBackCamera) => CameraSelector.DefaultBackCamera,
+					_ when cameraProvider.HasCamera(CameraSelector.DefaultFrontCamera) => CameraSelector.DefaultFrontCamera,
+					_ => null,
+				};
 
 				if (cameraSelector == null)
 					throw new System.Exception("Camera not found");
@@ -119,13 +120,34 @@ namespace ZXing.Net.Maui
 
 		public void AutoFocus()
 		{
+			var factory = new SurfaceOrientedMeteringPointFactory(1, 1);
+			var meteringPoint = factory.CreatePoint(0.5f, 0.5f);
+			var action = new FocusMeteringAction.Builder(meteringPoint, FocusMeteringAction.FlagAf)
+				.Build();
 
+			camera.CameraControl.StartFocusAndMetering(action);
 		}
 
 		public void Dispose()
 		{
 			cameraExecutor?.Shutdown();
 			cameraExecutor?.Dispose();
+		}
+
+		public async Task<bool> CanScan()
+		{
+			using var cameraProviderFuture = ProcessCameraProvider.GetInstance(Context.Context);
+			var tcs = new TaskCompletionSource<bool>();
+
+			cameraProviderFuture.AddListener(new Java.Lang.Runnable(() =>
+			{
+				// Used to bind the lifecycle of cameras to the lifecycle owner
+				var cp = (ProcessCameraProvider)cameraProviderFuture.Get();
+
+				tcs.TrySetResult(cp.HasCamera(CameraSelector.DefaultBackCamera) || cp.HasCamera(CameraSelector.DefaultFrontCamera));
+			}), ContextCompat.GetMainExecutor(Context.Context));
+
+			return await tcs.Task;
 		}
 	}
 }

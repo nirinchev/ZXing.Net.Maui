@@ -2,6 +2,7 @@
 using Microsoft.Maui;
 using Microsoft.Maui.Graphics;
 using System;
+using System.Threading.Tasks;
 
 namespace ZXing.Net.Maui
 {
@@ -21,5 +22,7 @@ namespace ZXing.Net.Maui
 		void Focus(Point point);
 
 		bool IsTorchOn { get; set; }
+
+		Task<bool> CanScan();
 	}
 }
