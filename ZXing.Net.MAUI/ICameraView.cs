@@ -22,7 +22,5 @@ namespace ZXing.Net.Maui
 		void Focus(Point point);
 
 		bool IsTorchOn { get; set; }
-
-		Task<bool> CanScan();
 	}
 }

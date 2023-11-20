@@ -63,8 +63,6 @@ namespace ZXing.Net.Maui.Controls
 		public void Focus(Point point)
 			=> StrongHandler?.Invoke(nameof(Focus), point);
 
-		public Task<bool> CanScan() => StrongHandler?.Invoke(nameof(CanScan), null);
-
 		CameraBarcodeReaderViewHandler StrongHandler
 			=> Handler as CameraBarcodeReaderViewHandler;
 

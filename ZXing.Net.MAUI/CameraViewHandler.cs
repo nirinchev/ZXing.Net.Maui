@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using Microsoft.Maui;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Handlers;
@@ -71,8 +70,6 @@ namespace ZXing.Net.Maui
 
 		public void AutoFocus()
 			=> cameraManager?.AutoFocus();
-
-		public Task<bool> CanScan() => cameraManager?.CanScan() ?? Task.FromResult(false);
 
 		public static void MapFocus(CameraViewHandler handler, ICameraView cameraBarcodeReaderView, object? parameter)
 		{
