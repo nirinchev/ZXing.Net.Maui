@@ -24,5 +24,15 @@ namespace ZXing.Net.Maui
 
 			image.Close();
 		}
+
+		// CameraX 1.4+ added these as default methods on ImageAnalysis.Analyzer.
+		// The .NET binding surfaces them as abstract, so an unimplemented FrameAnalyzer
+		// throws AbstractMethodError at runtime when CameraX queries them.
+		public Android.Util.Size DefaultTargetResolution => null;
+
+		// 0 = ImageAnalysis.Analyzer.COORDINATE_SYSTEM_ORIGINAL (the Java default)
+		public int TargetCoordinateSystem => 0;
+
+		public void UpdateTransform(Android.Graphics.Matrix matrix) { }
 	}
 }

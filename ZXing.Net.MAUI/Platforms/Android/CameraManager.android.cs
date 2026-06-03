@@ -35,7 +35,7 @@ namespace ZXing.Net.Maui
 
 				// Preview
 				cameraPreview = new Preview.Builder().Build();
-				cameraPreview.SetSurfaceProvider(previewView.SurfaceProvider);
+				cameraPreview.SetSurfaceProvider(ContextCompat.GetMainExecutor(Context.Context), previewView.SurfaceProvider);
 
 				// Frame by frame analyze
 				imageAnalyzer = new ImageAnalysis.Builder()
@@ -55,7 +55,7 @@ namespace ZXing.Net.Maui
 
 		public void Disconnect()
 		{
-			cameraProvider?.Shutdown();
+			cameraProvider?.UnbindAll();
 			cameraProvider?.Dispose();
 			cameraProvider = null;
 
